@@ -68,8 +68,9 @@ window.addEventListener('DOMContentLoaded',()=>{[180,192,512].forEach(s=>{const 
 <body>
 <div id="app"></div>
 <script>
-const GEMINI_KEY='AIzaSyCbXuYMcYiKFabsL_CC90Ay9wF62yiQsCk';
-const GEMINI_URL=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+function getApiKey(){return localStorage.getItem('cc_gemini_key')||''}
+function setApiKey(k){localStorage.setItem('cc_gemini_key',k)}
+function getApiUrl(){return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${getApiKey()}`}
 
 const MODES=[
 {id:"interview",icon:"🎯",title:"Interview Prep",titleKo:"면접 연습",desc:"Tesla, Jacobs 등 실전 면접 시뮬레이션",color:"#2563eb",scenarios:[
@@ -93,7 +94,7 @@ const MODES=[
 ]}
 ];
 
-let state={screen:'home',selectedMode:null,selectedScenario:null,messages:[],chatHistory:[],input:'',loading:false,sessionCount:parseInt(localStorage.getItem('cc_sessions')||'0'),feedbackRequested:false,isIOS:/iPad|iPhone|iPod/.test(navigator.userAgent),isStandalone:window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone};
+let state={screen:getApiKey()?'home':'setup',selectedMode:null,selectedScenario:null,messages:[],chatHistory:[],input:'',loading:false,sessionCount:parseInt(localStorage.getItem('cc_sessions')||'0'),feedbackRequested:false,isIOS:/iPad|iPhone|iPod/.test(navigator.userAgent),isStandalone:window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone,apiKeyInput:''};
 
 function setState(u){Object.assign(state,u);render()}
 
@@ -102,7 +103,7 @@ try{
 const contents=[];
 if(history&&history.length>0){for(const msg of history){contents.push({role:msg.role==='assistant'?'model':'user',parts:[{text:msg.content}]})}}
 contents.push({role:'user',parts:[{text:userMsg}]});
-const res=await fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:sysPrompt}]},contents:contents,generationConfig:{temperature:0.8,maxOutputTokens:1024}})});
+const res=await fetch(getApiUrl(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:sysPrompt}]},contents:contents,generationConfig:{temperature:0.8,maxOutputTokens:1024}})});
 const data=await res.json();
 if(data.candidates&&data.candidates[0]&&data.candidates[0].content){return data.candidates[0].content.parts.map(p=>p.text||'').join('\n')}
 if(data.error){return 'API Error: '+(data.error.message||'Unknown error')}
@@ -139,18 +140,23 @@ setState({messages:[...state.messages,{role:'assistant',content:`📊 SESSION FE
 
 function render(){
 const app=document.getElementById('app');
-if(state.screen==='home')app.innerHTML=renderHome();
+if(state.screen==='setup')app.innerHTML=renderSetup();
+else if(state.screen==='home')app.innerHTML=renderHome();
 else if(state.screen==='scenarios')app.innerHTML=renderScenarios();
 else app.innerHTML=renderChat();
 bindEvents();
 if(state.screen==='chat'){const el=document.getElementById('msgEnd');if(el)el.scrollIntoView({behavior:'smooth'})}
 }
 
+function renderSetup(){
+return `<div class="home-wrap"><div class="home-inner"><div style="text-align:center;margin-bottom:36px" class="fade-up"><div class="logo-icon">🏗️</div><h1 class="home-title">Communication<br>Coach Pro</h1><p class="home-sub">시작하려면 Google Gemini API 키를 입력하세요</p></div><div class="fade-up fade-up-1" style="display:flex;flex-direction:column;gap:16px"><div style="background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 16px"><label style="color:#94a3b8;font-size:12px;font-weight:600;display:block;margin-bottom:8px">GEMINI API KEY</label><input id="apiKeyInput" type="password" placeholder="AIzaSy..." value="${escapeAttr(state.apiKeyInput)}" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#f1f5f9;font-size:14px;font-family:'DM Sans',sans-serif;outline:none"><button data-action="saveKey" style="width:100%;margin-top:12px;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">시작하기</button></div><div class="tip-box"><div class="tip-title">🔑 API 키 받는 방법</div><div class="tip-text">1. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#60a5fa">aistudio.google.com/apikey</a> 접속<br>2. "Create API Key" 클릭<br>3. 생성된 키를 위에 붙여넣기<br><br>키는 이 기기에만 안전하게 저장됩니다.</div></div></div></div></div>`;
+}
+
 function renderHome(){
 const cards=MODES.map((m,i)=>`<div class="mode-card fade-up fade-up-${i+1}" data-action="selectMode" data-idx="${i}"><div class="mode-icon" style="background:${m.color}18">${m.icon}</div><div style="flex:1"><div class="mode-title">${m.title}</div><div class="mode-desc">${m.desc}</div></div><div class="mode-arrow">→</div></div>`).join('');
 const badge=state.sessionCount>0?`<div class="badge">${state.sessionCount} sessions completed</div>`:'';
 const install=!state.isStandalone?`<div class="install-banner fade-up fade-up-4"><div class="install-title">📱 홈 화면에 추가하기</div><div class="install-steps">${state.isIOS?'① Safari에서 이 페이지 열기<br>② 하단 공유 버튼 (□↑) 탭<br>③ "홈 화면에 추가" 선택':'① 브라우저 메뉴 (⋮) 탭<br>② "홈 화면에 추가" 또는 "앱 설치" 선택'}</div></div>`:'';
-return `<div class="home-wrap"><div class="home-inner"><div style="text-align:center;margin-bottom:36px" class="fade-up"><div class="logo-icon">🏗️</div><h1 class="home-title">Communication<br>Coach Pro</h1><p class="home-sub">구조 엔지니어를 위한 맞춤형 커뮤니케이션 훈련</p>${badge}</div><div style="display:flex;flex-direction:column;gap:12px">${cards}</div><div class="tip-box fade-up fade-up-4"><div class="tip-title">💡 사용 팁</div><div class="tip-text">실제 상황처럼 영어로 답변하세요. 세션 종료 후 "피드백" 버튼으로 상세한 분석을 받을 수 있습니다.</div></div>${install}</div></div>`;
+return `<div class="home-wrap"><div class="home-inner"><div style="text-align:center;margin-bottom:36px" class="fade-up"><div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button data-action="settings" style="background:rgba(255,255,255,.06);border:none;color:#64748b;font-size:16px;cursor:pointer;padding:6px 10px;border-radius:8px">⚙️</button></div><div class="logo-icon">🏗️</div><h1 class="home-title">Communication<br>Coach Pro</h1><p class="home-sub">구조 엔지니어를 위한 맞춤형 커뮤니케이션 훈련</p>${badge}</div><div style="display:flex;flex-direction:column;gap:12px">${cards}</div><div class="tip-box fade-up fade-up-4"><div class="tip-title">💡 사용 팁</div><div class="tip-text">실제 상황처럼 영어로 답변하세요. 세션 종료 후 "피드백" 버튼으로 상세한 분석을 받을 수 있습니다.</div></div>${install}</div></div>`;
 }
 
 function renderScenarios(){
@@ -180,8 +186,12 @@ document.querySelectorAll('[data-action="goHome"]').forEach(el=>{el.onclick=()=>
 document.querySelectorAll('[data-action="startScenario"]').forEach(el=>{el.onclick=()=>startSession(state.selectedMode,state.selectedMode.scenarios[el.dataset.idx])});
 document.querySelectorAll('[data-action="feedback"]').forEach(el=>{el.onclick=requestFeedback});
 document.querySelectorAll('[data-action="send"]').forEach(el=>{el.onclick=sendMessage});
+document.querySelectorAll('[data-action="saveKey"]').forEach(el=>{el.onclick=()=>{const k=state.apiKeyInput.trim();if(k){setApiKey(k);setState({screen:'home'})}}});
+document.querySelectorAll('[data-action="settings"]').forEach(el=>{el.onclick=()=>setState({screen:'setup'})});
 const input=document.getElementById('chatInput');
 if(input){input.oninput=(e)=>{state.input=e.target.value};input.onkeydown=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}}}
+const akInput=document.getElementById('apiKeyInput');
+if(akInput){akInput.oninput=(e)=>{state.apiKeyInput=e.target.value};akInput.onkeydown=(e)=>{if(e.key==='Enter'){const k=state.apiKeyInput.trim();if(k){setApiKey(k);setState({screen:'home'})}}}}
 }
 
 render();
