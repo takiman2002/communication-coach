@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CoachPro">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+<title>Communication Coach Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { 
+  height: 100%; 
+  overflow: hidden;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+#app { height: 100%; display: flex; flex-direction: column; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+/* ── Animations ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse3 { 0%,100% { opacity:.3; transform:scale(.8); } 50% { opacity:1; transform:scale(1); } }
+@keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+.fade-up { animation: fadeUp .45s ease both; }
+.fade-up-1 { animation-delay: .05s; }
+.fade-up-2 { animation-delay: .1s; }
+.fade-up-3 { animation-delay: .15s; }
+.fade-up-4 { animation-delay: .2s; }
+
+/* ── Home ── */
+.home-wrap { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; background: linear-gradient(165deg, #0f172a 0%, #1e293b 40%, #0f172a 100%); }
+.home-inner { max-width:460px; margin:0 auto; padding: env(safe-area-inset-top, 20px) 20px 32px; padding-top: max(40px, env(safe-area-inset-top, 20px)); }
+.logo-icon { width:64px; height:64px; margin:0 auto 10px; border-radius:18px; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); display:flex; align-items:center; justify-content:center; font-size:32px; box-shadow: 0 8px 32px rgba(37,99,235,0.3); }
+.home-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:800; color:#f8fafc; line-height:1.2; letter-spacing:-.5px; }
+.home-sub { color:#94a3b8; font-size:13px; margin-top:8px; line-height:1.5; }
+.badge { display:inline-block; background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.25); border-radius:20px; padding:3px 12px; margin-top:8px; font-size:11px; color:#60a5fa; font-weight:500; }
+
+/* ── Mode Cards ── */
+.mode-card {
+  display:flex; align-items:center; gap:14px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+  width: 100%;
+}
+.mode-card:active { transform: scale(.98); }
+.mode-icon { width:50px; height:50px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+.mode-title { color:#f1f5f9; font-size:15px; font-weight:600; margin-bottom:2px; }
+.mode-desc { color:#64748b; font-size:12px; line-height:1.4; }
+.mode-arrow { color:#475569; font-size:18px; flex-shrink:0; }
+
+/* ── Scenario List ── */
+.scenario-card {
+  display:flex; align-items:center; justify-content:space-between;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px;
+  padding: 16px 14px;
+  cursor: pointer;
+  transition: all .2s;
+  width: 100%;
+  text-align: left;
+}
+.scenario-card:active { transform: scale(.98); }
+.scenario-label { color:#e2e8f0; font-size:14px; font-weight:500; }
+.scenario-btn { font-size:11px; font-weight:600; padding:5px 12px; border-radius:20px; flex-shrink:0; }
+
+/* ── Back Button ── */
+.back-btn { background:none; border:none; color:#64748b; font-size:13px; cursor:pointer; padding:8px 0; display:flex; align-items:center; gap:4px; }
+
+/* ── Chat ── */
+.chat-header { 
+  padding: max(14px, env(safe-area-inset-top, 14px)) 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; gap:10px;
+  background: rgba(15,23,42,.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  flex-shrink:0;
+}
+.close-btn { background:rgba(255,255,255,.06); border:none; color:#94a3b8; font-size:13px; cursor:pointer; padding:6px 10px; border-radius:8px; }
+.feedback-btn { font-size:11px; font-weight:600; padding:6px 12px; border-radius:8px; border:1px solid; cursor:pointer; flex-shrink:0; white-space:nowrap; }
+.chat-messages { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 14px 8px; }
+
+.msg-row { display:flex; margin-bottom:10px; }
+.msg-row.user { justify-content:flex-end; }
+.msg-row.assistant { justify-content:flex-start; }
+.msg-bubble {
+  max-width: 84%;
+  padding: 11px 15px;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg-bubble.user { border-radius:18px 18px 4px 18px; color:#fff; }
+.msg-bubble.assistant { border-radius:18px 18px 18px 4px; background:rgba(255,255,255,.06); color:#e2e8f0; }
+
+.typing-dots { display:flex; gap:5px; padding:12px 18px; border-radius:18px 18px 18px 4px; background:rgba(255,255,255,.06); }
+.typing-dot { width:7px; height:7px; border-radius:50%; background:#475569; }
+.typing-dot:nth-child(1) { animation: pulse3 1.2s ease-in-out 0s infinite; }
+.typing-dot:nth-child(2) { animation: pulse3 1.2s ease-in-out .2s infinite; }
+.typing-dot:nth-child(3) { animation: pulse3 1.2s ease-in-out .4s infinite; }
+
+.chat-input-wrap {
+  padding: 10px 14px max(16px, env(safe-area-inset-bottom, 16px));
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex-shrink:0;
+  display:flex; gap:8px;
+}
+.chat-input {
+  flex:1; padding:11px 14px; border-radius:14px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);
+  color:#f1f5f9; font-size:14px;
+  font-family:'DM Sans',sans-serif;
+  outline:none;
+}
+.chat-input::placeholder { color:#475569; }
+.chat-input:focus { border-color: rgba(255,255,255,.2); }
+.send-btn {
+  width:44px; height:44px; border-radius:13px;
+  border:none; font-size:18px; cursor:pointer;
+  flex-shrink:0; transition: all .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ── Tip Box ── */
+.tip-box { margin-top:28px; padding:14px 16px; background:rgba(251,191,36,.05); border:1px solid rgba(251,191,36,.12); border-radius:14px; }
+.tip-title { font-size:12px; color:#fbbf24; font-weight:600; margin-bottom:5px; }
+.tip-text { font-size:11px; color:#94a3b8; line-height:1.6; }
+
+/* ── Install Banner ── */
+.install-banner {
+  margin-top:16px; padding:14px 16px;
+  background: linear-gradient(135deg, rgba(37,99,235,.1) 0%, rgba(124,58,237,.1) 100%);
+  border:1px solid rgba(59,130,246,.2);
+  border-radius:14px; cursor:pointer;
+  transition: all .2s;
+}
+.install-banner:active { transform:scale(.98); }
+.install-title { font-size:13px; color:#60a5fa; font-weight:600; margin-bottom:4px; }
+.install-steps { font-size:11px; color:#94a3b8; line-height:1.7; }
+</style>
+
+<script>
+// Generate App Icon dynamically
+function generateIcon(size) {
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  
+  // Background gradient
+  const g = ctx.createLinearGradient(0, 0, size, size);
+  g.addColorStop(0, '#1e3a8a');
+  g.addColorStop(0.5, '#2563eb');
+  g.addColorStop(1, '#7c3aed');
+  
+  // Rounded rect
+  const r = size * 0.18;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(size - r, 0);
+  ctx.quadraticCurveTo(size, 0, size, r);
+  ctx.lineTo(size, size - r);
+  ctx.quadraticCurveTo(size, size, size - r, size);
+  ctx.lineTo(r, size);
+  ctx.quadraticCurveTo(0, size, 0, size - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fillStyle = g;
+  ctx.fill();
+  
+  // Subtle grid pattern
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  const step = size / 8;
+  for (let i = step; i < size; i += step) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, size); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(size, i); ctx.stroke();
+  }
+  
+  // Building/structure icon
+  const cx = size/2, cy = size/2;
+  const s = size * 0.2;
+  
+  // Speech bubble shape
+  ctx.beginPath();
+  ctx.moveTo(cx - s*1.2, cy - s*0.6);
+  ctx.lineTo(cx + s*1.2, cy - s*0.6);
+  ctx.quadraticCurveTo(cx + s*1.5, cy - s*0.6, cx + s*1.5, cy - s*0.1);
+  ctx.lineTo(cx + s*1.5, cy + s*0.4);
+  ctx.quadraticCurveTo(cx + s*1.5, cy + s*0.8, cx + s*1.2, cy + s*0.8);
+  ctx.lineTo(cx - s*0.3, cy + s*0.8);
+  ctx.lineTo(cx - s*0.7, cy + s*1.3);
+  ctx.lineTo(cx - s*0.5, cy + s*0.8);
+  ctx.lineTo(cx - s*1.2, cy + s*0.8);
+  ctx.quadraticCurveTo(cx - s*1.5, cy + s*0.8, cx - s*1.5, cy + s*0.4);
+  ctx.lineTo(cx - s*1.5, cy - s*0.1);
+  ctx.quadraticCurveTo(cx - s*1.5, cy - s*0.6, cx - s*1.2, cy - s*0.6);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.fill();
+  
+  // Lines inside bubble
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = size * 0.025;
+  ctx.lineCap = 'round';
+  const lx = cx - s*0.8, ly = cy - s*0.2;
+  for (let i = 0; i < 3; i++) {
+    const w = i === 2 ? s*0.9 : s*1.6;
+    ctx.beginPath();
+    ctx.moveTo(lx, ly + i * s*0.35);
+    ctx.lineTo(lx + w, ly + i * s*0.35);
+    ctx.stroke();
+  }
+  
+  // "PRO" text
+  ctx.font = `bold ${size*0.09}px 'DM Sans', sans-serif`;
+  ctx.fillStyle = '#fbbf24';
+  ctx.textAlign = 'center';
+  ctx.fillText('PRO', cx + s*0.9, cy - s*0.85);
+  
+  return c.toDataURL('image/png');
+}
+
+// Set icons
+window.addEventListener('DOMContentLoaded', () => {
+  const sizes = [180, 192, 512];
+  sizes.forEach(s => {
+    const link = document.createElement('link');
+    link.rel = s === 180 ? 'apple-touch-icon' : 'icon';
+    link.type = 'image/png';
+    if (s !== 180) link.setAttribute('sizes', `${s}x${s}`);
+    link.href = generateIcon(s);
+    document.head.appendChild(link);
+  });
+  
+  // Web App Manifest (inline via blob)
+  const icon512 = generateIcon(512);
+  const icon192 = generateIcon(192);
+  const manifest = {
+    name: "Communication Coach Pro",
+    short_name: "CoachPro",
+    description: "구조 엔지니어를 위한 맞춤형 커뮤니케이션 훈련",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#0f172a",
+    theme_color: "#0f172a",
+    orientation: "portrait",
+    icons: [
+      { src: icon192, sizes: "192x192", type: "image/png" },
+      { src: icon512, sizes: "512x512", type: "image/png" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const mLink = document.createElement('link');
+  mLink.rel = 'manifest';
+  mLink.href = URL.createObjectURL(blob);
+  document.head.appendChild(mLink);
+});
+</script>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ── App Data ──
+const MODES = [
+  {
+    id: "interview", icon: "🎯", title: "Interview Prep", titleKo: "면접 연습",
+    desc: "Tesla, Jacobs 등 실전 면접 시뮬레이션", color: "#2563eb",
+    scenarios: [
+      { id:"tesla", label:"Tesla Structural Engineer",
+        system:`You are a hiring manager at Tesla's Austin Gigafactory conducting a technical interview for a Senior Structural Engineer position (Req. ID 253809). You are evaluating a candidate with 18+ years of structural engineering experience, PE/SE licenses in multiple states, and a doctoral degree. The candidate has extensive experience in semiconductor fabrication facility design, drilled shaft foundations, precast concrete connections, and large-scale industrial projects.\n\nAsk challenging but fair technical and behavioral questions about:\n- Structural design for manufacturing/industrial facilities\n- Foundation engineering (drilled shafts, pile design)\n- Seismic design and lateral systems\n- Construction coordination and field problem-solving\n- Leadership, team management, cross-cultural collaboration\n- Experience with Tesla's fast-paced environment\n\nStart by greeting the candidate and asking your first question. Ask ONE question at a time. After the candidate responds, give brief feedback and ask the next question. Be professional but warm. Conduct the interview in English.` },
+      { id:"jacobs", label:"Jacobs Data Center SME",
+        system:`You are a senior technical leader at Jacobs Engineering conducting an interview for the Structural Engineering SME - Data Centers position (Job ID #35737) in Austin, TX. You're looking for someone who can serve as a subject matter expert for data center structural design.\n\nAsk challenging technical and behavioral questions about:\n- Data center structural design (vibration-sensitive equipment, raised floors, redundant systems)\n- Experience with mission-critical facilities\n- Knowledge of relevant codes (IBC, ASCE 7, ACI 318, AISC 360)\n- Managing multiple design firms and quality control\n- Precast concrete and steel design for large facilities\n- Owner's representative experience\n\nStart by greeting the candidate and asking your first question. Ask ONE question at a time. After the candidate responds, give brief feedback and ask the next question. Conduct the interview in English.` },
+      { id:"general", label:"General SE Interview",
+        system:`You are a hiring manager at a top structural engineering firm interviewing a senior structural engineer candidate. The candidate has 18+ years experience, PE/SE licenses, a doctoral degree, and specializes in industrial/manufacturing facility design.\n\nAsk a mix of technical and behavioral questions covering:\n- Complex structural analysis and design\n- Code expertise (IBC, ASCE 7, ACI 318, AISC 360)\n- Project management and leadership\n- Problem-solving under pressure\n- Communication skills\n\nStart by greeting the candidate. Ask ONE question at a time. Give brief feedback after each answer. Conduct in English.` }
+    ]
+  },
+  {
+    id: "negotiation", icon: "⚖️", title: "Negotiation & Conflict", titleKo: "협상/갈등 연습",
+    desc: "GRL 반박, E&O 협상, 퇴사 협상 등", color: "#dc2626",
+    scenarios: [
+      { id:"grl", label:"Drilled Shaft Dispute (GRL)",
+        system:`You are a GRL Engineers representative defending your CAPWAP dynamic testing conclusion that two drilled shafts (Pier H5-39 and H-39.3, 36" diameter, ~82 ft deep) have "sound integrity." You genuinely believe your analysis is correct.\n\nThe user is the Owner's Representative Principal Engineer who disagrees with your conclusion. They have evidence showing:\n- No structural concrete in the lower 10-15 ft per coring results\n- CAPWAP data showing physically inconsistent results (1.8% toe resistance, 51.76% impedance change, volume ratio 1.345)\n- They believe your conclusion reflects confirmation bias\n\nDefend your position professionally but be open to technical arguments. Push back on their claims. Ask for specific data. This is a technical dispute, not personal. Conduct in English.` },
+      { id:"eo", label:"E&O Tail Coverage 협상",
+        system:`You are the insurance broker managing Samwoo Austin Inc.'s Admiral Insurance professional liability policy (Claims-Made, $1M/$3M limits, retroactive date 12/13/2022). The user is a Principal Engineer at Samwoo who is planning to leave the company and wants to discuss tail coverage options.\n\nKey context:\n- The engineer has performed EOR (Engineer of Record) duties with 6 stamps to date\n- There is a known drilled shaft deficiency issue on the T-PJT project\n- The engineer wants to ensure they are protected after departure\n\nBe professional but protective of the insurance company's interests. Explain policy terms, discuss tail coverage options, and address the complication of the known deficiency. Conduct in English.` },
+      { id:"resign", label:"퇴사 협상 (Samwoo)",
+        system:`You are the President/CEO of Samwoo Austin Inc. The user is your Principal Engineer who is about to resign. You know they are valuable — they handle all EOR stamp work, coordinate with 4 US design firms, and bridge Korean-US engineering gaps on the Samsung Taylor TX semiconductor project.\n\nReact realistically:\n- Try to retain them (counter-offer, better conditions)\n- Discuss transition planning\n- Address the EOR stamp transfer issue\n- Discuss non-compete and knowledge transfer concerns\n\nBe professional but firm about protecting company interests. You may show some frustration. Conduct in English with occasional Korean phrases.` }
+    ]
+  },
+  {
+    id: "presentation", icon: "🎤", title: "Presentation Coach", titleKo: "프레젠테이션 코치",
+    desc: "기술 발표, 보고서 발표 연습 및 피드백", color: "#059669",
+    scenarios: [
+      { id:"phase2", label:"Phase 2 전략 보고서 발표",
+        system:`You are a senior Samsung executive (VP level) attending a presentation about the T-PJT Phase 2 structural design strategy. You expect a clear, concise presentation covering:\n- Phase 1 lessons learned (crack root causes, special inspection failures)\n- Phase 2 lateral system strategy (CIP core walls, PC moment frames)\n- Expansion joint strategy\n- Drilled shaft quality issues and resolution\n- CMAR+GMP delivery recommendation\n- ERP-1 split strategy\n\nListen to the user's presentation, then provide detailed feedback on:\n- Clarity and organization\n- Technical depth vs. accessibility for non-engineers\n- Persuasiveness\n- Areas to improve\n\nAsk clarifying questions as a real executive would. Conduct in English.` },
+      { id:"technical", label:"Technical Design Review",
+        system:`You are a peer review panel (3 senior structural engineers) reviewing a technical presentation on precast concrete connection design for a semiconductor fab support building. You will ask tough technical questions about:\n- Lateral system choices (CIP core wall + PC moment frames)\n- Connection details (X-pin corbel, Y-moment with stub bar coupler)\n- Thermal movement and expansion joint strategy\n- Code compliance (ACI 318-19, ASCE 7)\n\nBe technically rigorous. Challenge assumptions. Ask ONE question at a time. Conduct in English.` }
+    ]
+  },
+  {
+    id: "english", icon: "🗣️", title: "English Speaking", titleKo: "영어 스피킹 연습",
+    desc: "발음, 표현 교정 및 비즈니스 영어", color: "#7c3aed",
+    scenarios: [
+      { id:"business", label:"Business Meeting English",
+        system:`You are an English communication coach specializing in business English for non-native speakers in technical fields. The user is a Korean-American structural engineer who is fluent in English but wants to polish their business communication.\n\nPractice realistic business scenarios:\n- Leading project meetings\n- Presenting technical findings to non-technical stakeholders\n- Diplomatic disagreement and persuasion\n- Email/message drafting review\n\nAfter each response, provide:\n1. A natural, polished version of what they said\n2. Key improvements explained\n3. Useful phrases or idioms they could incorporate\n\nBe encouraging but specific with corrections. Focus on professional polish, not basic grammar.` },
+      { id:"idiom", label:"Idioms & Expressions",
+        system:`You are an English language coach focusing on American business idioms, expressions, and cultural nuances. The user is a fluent but non-native English speaker working in engineering in Texas.\n\nTeach through conversation:\n- Introduce useful idioms in context\n- Explain cultural nuances of American workplace communication\n- Practice small talk, networking language, and leadership communication\n- Cover Texas/Southern expressions they might encounter\n\nMake it conversational and fun. Give real-world examples from engineering and business contexts. After each exchange, highlight 2-3 useful expressions.` },
+      { id:"pronunciation", label:"Pronunciation & Fluency",
+        system:`You are a speech coach specializing in helping Korean speakers improve their English pronunciation and fluency. The user is a senior structural engineer.\n\nFocus on common Korean-English pronunciation challenges:\n- R/L distinction\n- Th sounds\n- Word stress and sentence rhythm\n- Intonation patterns for authority and confidence\n- Common mispronunciations in engineering terminology\n\nSince this is text-based, focus on:\n- Written pronunciation guides (IPA when helpful)\n- Word stress patterns\n- Sentence rhythm exercises\n- Tongue twisters and practice phrases relevant to engineering\n\nMake it practical and encouraging.` }
+    ]
+  }
+];
+
+// ── State ──
+let state = {
+  screen: 'home',
+  selectedMode: null,
+  selectedScenario: null,
+  messages: [],
+  input: '',
+  loading: false,
+  sessionCount: parseInt(localStorage.getItem('cc_sessions') || '0'),
+  feedbackRequested: false,
+  isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
+  isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
+};
+
+function setState(updates) {
+  Object.assign(state, updates);
+  render();
+}
+
+// ── API ──
+async function callClaude(msgs, systemPrompt) {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: msgs
+      })
+    });
+    const data = await res.json();
+    return data.content?.map(b => b.text || '').join('\n') || 'Error: No response';
+  } catch(e) {
+    return 'API 연결에 문제가 발생했습니다. 다시 시도해 주세요.';
+  }
+}
+
+async function startSession(mode, scenario) {
+  setState({ selectedMode: mode, selectedScenario: scenario, messages: [], screen: 'chat', loading: true, feedbackRequested: false });
+  const count = state.sessionCount + 1;
+  localStorage.setItem('cc_sessions', count);
+  setState({ sessionCount: count });
+  
+  const reply = await callClaude(
+    [{ role:'user', content:'Please start the session. Greet me and begin.' }],
+    scenario.system
+  );
+  setState({ messages: [{ role:'assistant', content: reply }], loading: false });
+  setTimeout(() => document.getElementById('chatInput')?.focus(), 200);
+}
+
+async function sendMessage() {
+  const val = state.input.trim();
+  if (!val || state.loading) return;
+  
+  const newMsgs = [...state.messages, { role:'user', content: val }];
+  setState({ input: '', messages: newMsgs, loading: true });
+  
+  const apiMsgs = [{ role:'user', content:'Please start the session. Greet me and begin.' }, ...newMsgs];
+  const reply = await callClaude(apiMsgs, state.selectedScenario.system);
+  setState({ messages: [...newMsgs, { role:'assistant', content: reply }], loading: false });
+}
+
+async function requestFeedback() {
+  if (state.loading || state.feedbackRequested || state.messages.length < 4) return;
+  setState({ feedbackRequested: true, loading: true });
+  
+  const feedbackSystem = `You are an expert communication coach. Review the following conversation and provide comprehensive feedback in this format:
+
+## 종합 피드백 (Overall Feedback)
+
+### 강점 (Strengths)
+- List 3-4 specific strengths with examples from the conversation
+
+### 개선 사항 (Areas for Improvement)  
+- List 3-4 specific areas to improve with concrete suggestions
+
+### 핵심 표현 추천 (Recommended Expressions)
+- Suggest 3-5 better phrases or expressions they could have used, with before/after examples
+
+### 점수 (Score): X/10
+Brief justification for the score.
+
+### 다음 단계 (Next Steps)
+- 2-3 specific action items for improvement
+
+Provide feedback in a mix of Korean and English (Korean for headers and explanations, English for example phrases). Be encouraging but honest.`;
+  
+  const summary = state.messages.map(m => `${m.role==='user'?'User':'Coach'}: ${m.content}`).join('\n\n');
+  const reply = await callClaude(
+    [{ role:'user', content: `Please review this practice session and provide detailed feedback:\n\n${summary}` }],
+    feedbackSystem
+  );
+  setState({ messages: [...state.messages, { role:'assistant', content: `📊 SESSION FEEDBACK\n\n${reply}` }], loading: false });
+}
+
+// ── Render ──
+function render() {
+  const app = document.getElementById('app');
+  if (state.screen === 'home') app.innerHTML = renderHome();
+  else if (state.screen === 'scenarios') app.innerHTML = renderScenarios();
+  else app.innerHTML = renderChat();
+  bindEvents();
+  if (state.screen === 'chat') {
+    const el = document.getElementById('msgEnd');
+    if (el) el.scrollIntoView({ behavior:'smooth' });
+  }
+}
+
+function renderHome() {
+  const cards = MODES.map((m, i) => `
+    <div class="mode-card fade-up fade-up-${i+1}" data-action="selectMode" data-idx="${i}">
+      <div class="mode-icon" style="background:${m.color}18">${m.icon}</div>
+      <div style="flex:1">
+        <div class="mode-title">${m.title}</div>
+        <div class="mode-desc">${m.desc}</div>
+      </div>
+      <div class="mode-arrow">→</div>
+    </div>
+  `).join('');
+  
+  const badge = state.sessionCount > 0 ? `<div class="badge">${state.sessionCount} sessions completed</div>` : '';
+  
+  const installBanner = !state.isStandalone ? `
+    <div class="install-banner fade-up fade-up-4" id="installInfo">
+      <div class="install-title">📱 홈 화면에 추가하기</div>
+      <div class="install-steps">
+        ${state.isIOS 
+          ? '① Safari에서 이 페이지 열기<br>② 하단 공유 버튼 (□↑) 탭<br>③ "홈 화면에 추가" 선택' 
+          : '① 브라우저 메뉴 (⋮) 탭<br>② "홈 화면에 추가" 또는 "앱 설치" 선택'}
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    <div class="home-wrap">
+      <div class="home-inner">
+        <div style="text-align:center; margin-bottom:36px" class="fade-up">
+          <div class="logo-icon">🏗️</div>
+          <h1 class="home-title">Communication<br>Coach Pro</h1>
+          <p class="home-sub">구조 엔지니어를 위한 맞춤형 커뮤니케이션 훈련</p>
+          ${badge}
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px">
+          ${cards}
+        </div>
+        <div class="tip-box fade-up fade-up-4">
+          <div class="tip-title">💡 사용 팁</div>
+          <div class="tip-text">실제 상황처럼 영어로 답변하세요. 세션 종료 후 "피드백" 버튼으로 상세한 분석을 받을 수 있습니다.</div>
+        </div>
+        ${installBanner}
+      </div>
+    </div>
+  `;
+}
+
+function renderScenarios() {
+  const m = state.selectedMode;
+  const items = m.scenarios.map((sc, i) => `
+    <div class="scenario-card fade-up fade-up-${i+1}" data-action="startScenario" data-idx="${i}">
+      <div class="scenario-label">${sc.label}</div>
+      <div class="scenario-btn" style="background:${m.color}20; color:${m.color}">시작</div>
+    </div>
+  `).join('');
+  
+  return `
+    <div class="home-wrap">
+      <div class="home-inner">
+        <button class="back-btn" data-action="goHome">← 뒤로</button>
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px">
+          <div class="mode-icon" style="background:${m.color}20; font-size:24px">${m.icon}</div>
+          <div>
+            <h2 style="font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#f1f5f9">${m.title}</h2>
+            <p style="color:#64748b; font-size:12px; margin-top:2px">${m.titleKo}</p>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px">${items}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderChat() {
+  const m = state.selectedMode;
+  const sc = state.selectedScenario;
+  
+  const msgs = state.messages.map(msg => `
+    <div class="msg-row ${msg.role}">
+      <div class="msg-bubble ${msg.role}" style="${msg.role==='user' ? 'background:'+m.color : ''}">${escapeHtml(msg.content)}</div>
+    </div>
+  `).join('');
+  
+  const typing = state.loading ? `
+    <div class="msg-row assistant">
+      <div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>
+  ` : '';
+  
+  const canFeedback = state.messages.length >= 4 && !state.feedbackRequested && !state.loading;
+  const fbColor = state.feedbackRequested ? '#10b981' : canFeedback ? '#fbbf24' : '#475569';
+  const fbBg = state.feedbackRequested ? 'rgba(16,185,129,.12)' : canFeedback ? 'rgba(251,191,36,.1)' : 'rgba(255,255,255,.03)';
+  const fbBorder = state.feedbackRequested ? 'rgba(16,185,129,.25)' : canFeedback ? 'rgba(251,191,36,.25)' : 'rgba(255,255,255,.06)';
+  
+  const hasInput = state.input.trim().length > 0;
+  const sendActive = hasInput && !state.loading;
+  
+  return `
+    <div class="chat-header">
+      <button class="close-btn" data-action="goHome">✕</button>
+      <div style="flex:1">
+        <div style="color:#f1f5f9; font-size:13px; font-weight:600">${sc.label}</div>
+        <div style="color:#64748b; font-size:10px; margin-top:1px">${m.titleKo}</div>
+      </div>
+      <button class="feedback-btn" style="background:${fbBg}; color:${fbColor}; border-color:${fbBorder}" 
+        data-action="feedback" ${!canFeedback ? 'disabled' : ''}>
+        ${state.feedbackRequested ? '✓ 완료' : '📊 피드백'}
+      </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      ${msgs}
+      ${typing}
+      <div id="msgEnd"></div>
+    </div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chatInput" value="${escapeAttr(state.input)}" 
+        placeholder="Type your response in English..." ${state.loading ? 'disabled' : ''}>
+      <button class="send-btn" data-action="send" 
+        style="background:${sendActive ? m.color : 'rgba(255,255,255,.04)'}; color:${sendActive ? '#fff' : '#475569'}; cursor:${sendActive ? 'pointer' : 'default'}">↑</button>
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function escapeAttr(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function bindEvents() {
+  document.querySelectorAll('[data-action="selectMode"]').forEach(el => {
+    el.onclick = () => setState({ selectedMode: MODES[el.dataset.idx], screen:'scenarios' });
+  });
+  document.querySelectorAll('[data-action="goHome"]').forEach(el => {
+    el.onclick = () => setState({ screen:'home' });
+  });
+  document.querySelectorAll('[data-action="startScenario"]').forEach(el => {
+    el.onclick = () => startSession(state.selectedMode, state.selectedMode.scenarios[el.dataset.idx]);
+  });
+  document.querySelectorAll('[data-action="feedback"]').forEach(el => {
+    el.onclick = requestFeedback;
+  });
+  document.querySelectorAll('[data-action="send"]').forEach(el => {
+    el.onclick = sendMessage;
+  });
+  
+  const input = document.getElementById('chatInput');
+  if (input) {
+    input.oninput = (e) => { state.input = e.target.value; };
+    input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  }
+}
+
+// ── Init ──
+render();
+</script>
+</body>
+</html>
